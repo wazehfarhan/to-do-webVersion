@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexusTasks | Modern To-Do List</title>
+    <title> NexusTasks | Modern To-Do List</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✅</text></svg>">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%234f46e5%22>✅</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%234f46e5%22>✅</text></svg>">
 </head>
 <body>
     <!-- Sound Effect (Hidden) -->
@@ -244,17 +245,22 @@
         <footer class="footer glass-card">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h4>NexusTasks</h4>
-                    <p>A modern, feature-rich to-do list application built with HTML, CSS, and JavaScript.</p>
-                    <div class="footer-links">
-                        <a href="#" class="footer-link">About</a>
-                        <a href="#" class="footer-link">Features</a>
-                        <a href="#" class="footer-link">GitHub</a>
-                        <a href="#" class="footer-link">Contact</a>
+                    <h4><i class="fas fa-info-circle"></i> About NexusTasks</h4>
+                    <p>A modern, feature-rich to-do list application built with pure HTML, CSS, and JavaScript. No frameworks, no dependencies, just clean code.</p>
+                    <div class="features-list">
+                        <h5>Key Features:</h5>
+                        <ul>
+                            <li><i class="fas fa-check-circle"></i> Glassmorphism UI with Dark Mode</li>
+                            <li><i class="fas fa-check-circle"></i> Drag & Drop Task Reordering</li>
+                            <li><i class="fas fa-check-circle"></i> Excel/JSON Import & Export</li>
+                            <li><i class="fas fa-check-circle"></i> Voice Search & Daily Notifications</li>
+                            <li><i class="fas fa-check-circle"></i> Priority Levels & Due Dates</li>
+                            <li><i class="fas fa-check-circle"></i> Fully Responsive Design</li>
+                        </ul>
                     </div>
                 </div>
                 <div class="footer-section">
-                    <h4>Quick Stats</h4>
+                    <h4><i class="fas fa-chart-bar"></i> Quick Stats</h4>
                     <div class="footer-stats">
                         <div class="footer-stat">
                             <span class="stat-label">Total Tasks:</span>
@@ -268,40 +274,95 @@
                             <span class="stat-label">Pending:</span>
                             <span id="footerPendingTasks" class="stat-value">0</span>
                         </div>
+                        <div class="footer-stat">
+                            <span class="stat-label">Productivity:</span>
+                            <span id="footerProductivity" class="stat-value">0%</span>
+                        </div>
+                    </div>
+                    <div class="storage-info">
+                        <h5>Storage Info:</h5>
+                        <div class="storage-bar">
+                            <div class="storage-fill" id="storageFill"></div>
+                        </div>
+                        <p class="storage-text" id="storageText">LocalStorage: 0KB / 5MB</p>
                     </div>
                 </div>
                 <div class="footer-section">
-                    <h4>Export/Import</h4>
-                    <p>Export your tasks in multiple formats or import from existing files.</p>
+                    <h4><i class="fas fa-download"></i> Export/Import</h4>
+                    <p>Backup your tasks or migrate to other systems with multiple format support.</p>
                     <div class="footer-buttons">
                         <button id="footerExportBtn" class="btn-secondary">
-                            <i class="fas fa-download"></i> Export
+                            <i class="fas fa-download"></i> Export Tasks
                         </button>
                         <button id="footerImportBtn" class="btn-secondary">
-                            <i class="fas fa-upload"></i> Import
+                            <i class="fas fa-upload"></i> Import Tasks
                         </button>
+                    </div>
+                    <div class="format-info">
+                        <p><strong>Supported Formats:</strong></p>
+                        <div class="formats">
+                            <span class="format-tag">JSON</span>
+                            <span class="format-tag">Excel (.xlsx)</span>
+                            <span class="format-tag">CSV</span>
+                        </div>
                     </div>
                 </div>
                 <div class="footer-section">
-                    <h4>Connect</h4>
+                    <h4><i class="fas fa-address-card"></i> Contact & Links</h4>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fab fa-github"></i>
+                            <div>
+                                <strong>GitHub Repository</strong>
+                                <a href="https://github.com/wazehfarhan/to-do-webVersion" target="_blank" class="contact-link">
+                                    https://github.com/wazehfarhan/to-do-webVersion
+                                </a>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-code"></i>
+                            <div>
+                                <strong>Developer</strong>
+                                <span class="contact-text">Kazi Md. Wazeh Ullah Farhan</span>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <strong>Email</strong>
+                                <a href="wzullah.farhan@gmail.com" class="contact-link">
+                                    wzullah.farhan@gmail.com
+                                </a>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-globe"></i>
+                            <div>
+                                <strong>Portfolio</strong>
+                                <a href="https://wazehfarhan.github.io/Winxp-OS-portfolio/" target="_blank" class="contact-link">
+                                    https://wazehfarhan.github.io/portfolio
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="social-links">
-                        <a href="#" class="social-link" aria-label="Twitter">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-link" aria-label="GitHub">
+                        <a href="https://github.com/wazehfarhan" target="_blank" class="social-link" aria-label="GitHub Profile" title="GitHub">
                             <i class="fab fa-github"></i>
                         </a>
-                        <a href="#" class="social-link" aria-label="LinkedIn">
+                        <a href="https://linkedin.com/in/w2zfrhn" target="_blank" class="social-link" aria-label="LinkedIn Profile" title="LinkedIn">
                             <i class="fab fa-linkedin"></i>
                         </a>
-                        <a href="#" class="social-link" aria-label="Discord">
-                            <i class="fab fa-discord"></i>
+                        <a href="https://twitter.com/w2zfrhn" target="_blank" class="social-link" aria-label="Twitter Profile" title="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://codepen.io/w2zfrhn" target="_blank" class="social-link" aria-label="CodePen Profile" title="CodePen">
+                            <i class="fab fa-codepen"></i>
                         </a>
                     </div>
                     <p class="copyright">
-                        © 2024 NexusTasks. All rights reserved.
+                        © 2024 NexusTasks v2.1
                         <br>
-                        <span class="version">v2.0.0</span>
+                        <span class="tech-stack">Built with ❤️ using HTML, CSS & JavaScript</span>
                     </p>
                 </div>
             </div>
@@ -340,29 +401,73 @@
             <p id="confirmMessage">Are you sure you want to proceed?</p>
             <div class="modal-buttons">
                 <button id="confirmActionBtn" class="btn-danger">Confirm</button>
-                <button id="cancelActionBtn" class="btn-secondary">Cancel</button>
-            </div>
+                    <button id="cancelActionBtn" class="btn-secondary">Cancel</button>
+                </div>
         </div>
     </div>
 
     <!-- Export Format Modal -->
     <div class="modal-overlay hidden" id="exportModal" role="dialog" aria-labelledby="exportModalTitle">
         <div class="modal-content glass-card">
-            <h3 id="exportModalTitle">Export Tasks</h3>
-            <p>Choose export format:</p>
+            <h3 id="exportModalTitle"><i class="fas fa-download"></i> Export Tasks</h3>
+            <p>Choose your preferred export format:</p>
             <div class="export-options-modal">
                 <button id="exportJsonModalBtn" class="btn-secondary">
                     <i class="fas fa-file-code"></i> JSON Format
+                    <small>Full data with metadata</small>
                 </button>
                 <button id="exportExcelModalBtn" class="btn-secondary">
                     <i class="fas fa-file-excel"></i> Excel Format
+                    <small>Microsoft Excel compatible</small>
                 </button>
                 <button id="exportCsvModalBtn" class="btn-secondary">
                     <i class="fas fa-file-csv"></i> CSV Format
+                    <small>Simple spreadsheet format</small>
                 </button>
             </div>
             <div class="modal-buttons">
                 <button id="cancelExportBtn" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div class="modal-overlay hidden" id="aboutModal" role="dialog" aria-labelledby="aboutModalTitle">
+        <div class="modal-content glass-card">
+            <h3 id="aboutModalTitle"><i class="fas fa-info-circle"></i> About NexusTasks</h3>
+            <div class="about-content">
+                <div class="about-section">
+                    <h4><i class="fas fa-rocket"></i> Project Overview</h4>
+                    <p>NexusTasks is a modern, feature-rich to-do list application built entirely with vanilla HTML, CSS, and JavaScript. No frameworks, no dependencies - just pure web technologies.</p>
+                </div>
+                <div class="about-section">
+                    <h4><i class="fas fa-star"></i> Key Features</h4>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-palette"></i> Glassmorphism UI with Dark Mode</li>
+                        <li><i class="fas fa-arrows-alt"></i> Drag & Drop Task Management</li>
+                        <li><i class="fas fa-file-excel"></i> Excel/JSON Import & Export</li>
+                        <li><i class="fas fa-microphone"></i> Voice Search Integration</li>
+                        <li><i class="fas fa-bell"></i> Daily Notifications</li>
+                        <li><i class="fas fa-mobile-alt"></i> Fully Responsive Design</li>
+                    </ul>
+                </div>
+                <div class="about-section">
+                    <h4><i class="fas fa-code"></i> Technology Stack</h4>
+                    <div class="tech-tags">
+                        <span class="tech-tag">HTML5</span>
+                        <span class="tech-tag">CSS3</span>
+                        <span class="tech-tag">JavaScript ES6+</span>
+                        <span class="tech-tag">LocalStorage API</span>
+                        <span class="tech-tag">Web Notifications</span>
+                        <span class="tech-tag">Speech Recognition</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="closeAboutBtn" class="btn-primary">Close</button>
+                <a href="https://github.com/yourusername/nexus-tasks" target="_blank" class="btn-secondary">
+                    <i class="fab fa-github"></i> View on GitHub
+                </a>
             </div>
         </div>
     </div>
