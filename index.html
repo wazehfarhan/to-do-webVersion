@@ -3,162 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlassTask | Modern To-Do List</title>
+    <title>NexusTasks | Modern To-Do List</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✅</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✅</text></svg>">
 </head>
 <body>
+    <!-- Sound Effect (Hidden) -->
+    <audio id="addSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" type="audio/wav">
+    </audio>
+    <audio id="completeSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" type="audio/wav">
+    </audio>
+    <audio id="deleteSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" type="audio/wav">
+    </audio>
+
     <div class="container">
-        <!-- Header Section -->
-        <header class="header">
+        <!-- Header -->
+        <header class="header glass-card">
             <div class="logo">
-                <i class="fas fa-check-circle"></i>
-                <h1>GlassTask</h1>
+                <i class="fas fa-check-double"></i>
+                <h1>Nexus<span>Tasks</span></h1>
             </div>
             <div class="header-controls">
+                <div class="sound-toggle">
+                    <i class="fas fa-volume-up"></i>
+                    <label class="switch">
+                        <input type="checkbox" id="soundToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
                 <div class="notification-toggle">
-                    <span>Notifications</span>
+                    <i class="fas fa-bell"></i>
                     <label class="switch">
                         <input type="checkbox" id="notificationToggle">
                         <span class="slider"></span>
                     </label>
                 </div>
-                <button class="theme-toggle" id="themeToggle">
-                    <i class="fas fa-moon"></i>
-                    <i class="fas fa-sun"></i>
-                </button>
+                <div class="theme-selector">
+                    <button class="theme-btn" data-theme="light" title="Light Mode">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    <button class="theme-btn" data-theme="dark" title="Dark Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+                <div class="color-picker">
+                    <span class="color-option" data-color="blue" style="background-color: #4f46e5;"></span>
+                    <span class="color-option" data-color="purple" style="background-color: #8b5cf6;"></span>
+                    <span class="color-option" data-color="green" style="background-color: #10b981;"></span>
+                    <span class="color-option" data-color="orange" style="background-color: #f59e0b;"></span>
+                </div>
             </div>
         </header>
 
-        <!-- Task Stats -->
-        <div class="stats-container">
-            <div class="stat-card">
-                <h3>Total Tasks</h3>
-                <p class="stat-value" id="totalTasks">0</p>
-            </div>
-            <div class="stat-card">
-                <h3>Completed</h3>
-                <p class="stat-value" id="completedTasks">0</p>
-            </div>
-            <div class="stat-card">
-                <h3>Pending</h3>
-                <p class="stat-value" id="pendingTasks">0</p>
-            </div>
-        </div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Left Panel - Stats & Controls -->
+            <aside class="sidebar">
+                <!-- Stats Cards -->
+                <div class="stats-section">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Tasks</h3>
+                            <p id="totalTasks" class="stat-value">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Completed</h3>
+                            <p id="completedTasks" class="stat-value">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Pending</h3>
+                            <p id="pendingTasks" class="stat-value">0</p>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Task Input Section -->
-        <div class="input-section glass-card">
-            <div class="input-row">
-                <input type="text" id="taskInput" placeholder="Add a new task...">
-                <button id="addTaskBtn" class="btn-primary">
-                    <i class="fas fa-plus"></i> Add Task
-                </button>
-            </div>
-            <div class="advanced-options">
-                <div class="option-group">
-                    <label for="prioritySelect">Priority:</label>
-                    <select id="prioritySelect">
-                        <option value="low">Low</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="high">High</option>
-                    </select>
+                <!-- Progress Bar -->
+                <div class="progress-container glass-card">
+                    <div class="progress-header">
+                        <h3>Progress</h3>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
                 </div>
-                <div class="option-group">
-                    <label for="dueDate">Due Date:</label>
-                    <input type="date" id="dueDate">
-                </div>
-                <div class="option-group">
-                    <button id="toggleDescriptionBtn" class="btn-secondary">
-                        <i class="fas fa-align-left"></i> Add Description
+
+                <!-- Quick Actions -->
+                <div class="quick-actions glass-card">
+                    <h3>Quick Actions</h3>
+                    <button id="exportBtn" class="btn-secondary">
+                        <i class="fas fa-download"></i> Export Tasks
+                    </button>
+                    <button id="importBtn" class="btn-secondary">
+                        <i class="fas fa-upload"></i> Import Tasks
+                    </button>
+                    <button id="clearCompletedBtn" class="btn-secondary">
+                        <i class="fas fa-check-double"></i> Clear Completed
+                    </button>
+                    <button id="clearAllBtn" class="btn-danger">
+                        <i class="fas fa-trash"></i> Clear All
                     </button>
                 </div>
-            </div>
-            <div class="description-container hidden" id="descriptionContainer">
-                <textarea id="taskDescription" placeholder="Task description (optional)"></textarea>
-            </div>
-        </div>
 
-        <!-- Controls Section -->
-        <div class="controls-section">
-            <div class="filter-controls">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="pending">Pending</button>
-                <button class="filter-btn" data-filter="completed">Completed</button>
-            </div>
-            <div class="sort-controls">
-                <label for="sortSelect">Sort by:</label>
-                <select id="sortSelect">
-                    <option value="priority">Priority</option>
-                    <option value="date">Date Added</option>
-                    <option value="dueDate">Due Date</option>
-                    <option value="alphabetical">Alphabetical</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Task List -->
-        <div class="tasks-container">
-            <h2>Your Tasks</h2>
-            <div class="task-list" id="taskList">
-                <!-- Tasks will be added here dynamically -->
-                <div class="empty-state">
-                    <i class="fas fa-clipboard-list"></i>
-                    <p>No tasks yet. Add a task to get started!</p>
+                <!-- Calendar View -->
+                <div class="calendar-container glass-card">
+                    <h3>This Week</h3>
+                    <div class="calendar-week" id="calendarWeek">
+                        <!-- Calendar days will be populated by JS -->
+                    </div>
                 </div>
-            </div>
-        </div>
+            </aside>
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <button id="clearAllBtn" class="btn-danger">
-                <i class="fas fa-trash-alt"></i> Clear All Tasks
-            </button>
-        </div>
+            <!-- Right Panel - Tasks -->
+            <section class="tasks-section">
+                <!-- Search & Filter Bar -->
+                <div class="controls-bar glass-card">
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search tasks..." aria-label="Search tasks">
+                        <button id="voiceSearchBtn" class="voice-btn" title="Voice Search">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                    <div class="filter-sort-controls">
+                        <div class="filter-controls">
+                            <button class="filter-btn active" data-filter="all" aria-label="Show all tasks">All</button>
+                            <button class="filter-btn" data-filter="pending" aria-label="Show pending tasks">Pending</button>
+                            <button class="filter-btn" data-filter="completed" aria-label="Show completed tasks">Completed</button>
+                        </div>
+                        <div class="sort-controls">
+                            <label for="sortSelect" class="sr-only">Sort tasks by</label>
+                            <select id="sortSelect" aria-label="Sort tasks by">
+                                <option value="priority">Priority</option>
+                                <option value="date">Date Added</option>
+                                <option value="dueDate">Due Date</option>
+                                <option value="alphabetical">Alphabetical</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Notification Banner -->
-        <div class="notification-banner hidden" id="notificationBanner">
-            <p>Task added successfully!</p>
-            <button class="close-notification">&times;</button>
-        </div>
+                <!-- Add Task Form -->
+                <div class="add-task-form glass-card">
+                    <div class="form-header">
+                        <h3>Add New Task</h3>
+                        <button id="toggleFormBtn" class="btn-icon" aria-label="Toggle form">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="form-content" id="formContent">
+                        <div class="form-row">
+                            <input type="text" id="taskTitle" placeholder="Task title" required aria-label="Task title">
+                            <select id="taskPriority" aria-label="Task priority">
+                                <option value="low">Low Priority</option>
+                                <option value="medium" selected>Medium Priority</option>
+                                <option value="high">High Priority</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <input type="date" id="taskDueDate" aria-label="Due date">
+                            <button type="button" id="addTaskBtn" class="btn-primary">
+                                <i class="fas fa-plus"></i> Add Task
+                            </button>
+                        </div>
+                        <div class="form-row">
+                            <textarea id="taskDescription" placeholder="Task description (optional)" 
+                                     rows="3" aria-label="Task description"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task List -->
+                <div class="tasks-container glass-card">
+                    <div class="tasks-header">
+                        <h2>Your Tasks</h2>
+                        <div class="tasks-count">
+                            <span id="visibleTasksCount">0</span> tasks shown
+                        </div>
+                    </div>
+                    <div class="task-list" id="taskList" aria-label="Task list">
+                        <!-- Empty State -->
+                        <div class="empty-state" id="emptyState">
+                            <div class="empty-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <h3>No tasks yet</h3>
+                            <p>Add your first task to get started!</p>
+                            <div class="empty-animation">
+                                <div class="circle"></div>
+                                <div class="circle"></div>
+                                <div class="circle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Floating Add Button -->
+        <button id="floatingAddBtn" class="floating-btn" aria-label="Add new task">
+            <i class="fas fa-plus"></i>
+        </button>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div class="modal-overlay hidden" id="confirmationModal">
+    <!-- Modals -->
+    <div class="modal-overlay hidden" id="editModal" role="dialog" aria-labelledby="editModalTitle">
         <div class="modal-content glass-card">
-            <h3>Confirm Deletion</h3>
-            <p>Are you sure you want to delete all tasks? This action cannot be undone.</p>
-            <div class="modal-buttons">
-                <button id="confirmDeleteBtn" class="btn-danger">Delete All</button>
-                <button id="cancelDeleteBtn" class="btn-secondary">Cancel</button>
-            </div>
+            <h3 id="editModalTitle">Edit Task</h3>
+            <form id="editForm">
+                <input type="text" id="editTitle" required aria-label="Task title">
+                <select id="editPriority" aria-label="Task priority">
+                    <option value="low">Low Priority</option>
+                    <option value="medium">Medium Priority</option>
+                    <option value="high">High Priority</option>
+                </select>
+                <input type="date" id="editDueDate" aria-label="Due date">
+                <textarea id="editDescription" rows="4" aria-label="Task description"></textarea>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                    <button type="button" id="cancelEditBtn" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Task Detail Modal -->
-    <div class="modal-overlay hidden" id="taskDetailModal">
+    <div class="modal-overlay hidden" id="confirmModal" role="dialog" aria-labelledby="confirmModalTitle">
         <div class="modal-content glass-card">
-            <h3 id="detailTaskTitle">Task Title</h3>
-            <div class="detail-priority">
-                Priority: <span id="detailPriority">Medium</span>
-            </div>
-            <div class="detail-due-date">
-                Due Date: <span id="detailDueDate">Not set</span>
-            </div>
-            <div class="detail-description">
-                <h4>Description</h4>
-                <p id="detailDescription">No description provided.</p>
-            </div>
+            <h3 id="confirmModalTitle">Confirm Action</h3>
+            <p id="confirmMessage">Are you sure you want to proceed?</p>
             <div class="modal-buttons">
-                <button id="closeDetailBtn" class="btn-primary">Close</button>
+                <button id="confirmActionBtn" class="btn-danger">Confirm</button>
+                <button id="cancelActionBtn" class="btn-secondary">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Script -->
+    <!-- File Input for Import (Hidden) -->
+    <input type="file" id="fileImport" accept=".json" class="hidden">
+
+    <!-- Notification Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <script src="app.js"></script>
 </body>
 </html>
