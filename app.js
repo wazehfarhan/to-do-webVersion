@@ -1,8 +1,6 @@
 /**
- * NexusTasks - Modern To-Do List Application
- * A complete, production-ready task management app
- * Features: Glass UI, Dark Mode, Drag & Drop, Notifications, Export/Import
- * Built with HTML, CSS, JavaScript, and LocalStorage
+ * NexusTasks - Modern To-Do List Application v2.0
+ * Added: Footer, Excel Export/Import, Fixed Calendar
  */
 
 // ===== Application State & Configuration =====
@@ -18,7 +16,8 @@ const AppState = {
     dragOverTask: null,
     lastNotificationDate: null,
     isEditing: false,
-    editTaskId: null
+    editTaskId: null,
+    calendarOffset: 0 // For calendar navigation
 };
 
 // ===== DOM Elements =====
@@ -44,6 +43,17 @@ const DOM = {
     progressFill: document.getElementById('progressFill'),
     visibleTasksCount: document.getElementById('visibleTasksCount'),
     
+    // Footer Stats
+    footerTotalTasks: document.getElementById('footerTotalTasks'),
+    footerCompletedTasks: document.getElementById('footerCompletedTasks'),
+    footerPendingTasks: document.getElementById('footerPendingTasks'),
+    
+    // Calendar
+    calendarWeek: document.getElementById('calendarWeek'),
+    calendarMonth: document.getElementById('calendarMonth'),
+    prevWeekBtn: document.getElementById('prevWeekBtn'),
+    nextWeekBtn: document.getElementById('nextWeekBtn'),
+    
     // Controls
     filterButtons: document.querySelectorAll('.filter-btn'),
     themeButtons: document.querySelectorAll('.theme-btn'),
@@ -52,9 +62,22 @@ const DOM = {
     notificationToggle: document.getElementById('notificationToggle'),
     voiceSearchBtn: document.getElementById('voiceSearchBtn'),
     
-    // Actions
-    exportBtn: document.getElementById('exportBtn'),
-    importBtn: document.getElementById('importBtn'),
+    // Export/Import Buttons
+    exportJsonBtn: document.getElementById('exportJsonBtn'),
+    exportExcelBtn: document.getElementById('exportExcelBtn'),
+    importJsonBtn: document.getElementById('importJsonBtn'),
+    importExcelBtn: document.getElementById('importExcelBtn'),
+    footerExportBtn: document.getElementById('footerExportBtn'),
+    footerImportBtn: document.getElementById('footerImportBtn'),
+    
+    // Export Modal
+    exportModal: document.getElementById('exportModal'),
+    exportJsonModalBtn: document.getElementById('exportJsonModalBtn'),
+    exportExcelModalBtn: document.getElementById('exportExcelModalBtn'),
+    exportCsvModalBtn: document.getElementById('exportCsvModalBtn'),
+    cancelExportBtn: document.getElementById('cancelExportBtn'),
+    
+    // Clear buttons
     clearCompletedBtn: document.getElementById('clearCompletedBtn'),
     clearAllBtn: document.getElementById('clearAllBtn'),
     floatingAddBtn: document.getElementById('floatingAddBtn'),
@@ -74,11 +97,9 @@ const DOM = {
     cancelActionBtn: document.getElementById('cancelActionBtn'),
     confirmMessage: document.getElementById('confirmMessage'),
     
-    // Calendar
-    calendarWeek: document.getElementById('calendarWeek'),
-    
-    // File Input
-    fileImport: document.getElementById('fileImport'),
+    // File Inputs
+    fileImportJson: document.getElementById('fileImportJson'),
+    fileImportExcel: document.getElementById('fileImportExcel'),
     
     // Toast Container
     toastContainer: document.getElementById('toastContainer')
@@ -273,6 +294,25 @@ const Utils = {
         }
         
         return errors;
+    },
+    
+    // Format date for Excel (YYYY-MM-DD)
+    formatDateForExcel: (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toISOString().split('T')[0];
+    },
+    
+    // Convert priority to numeric value for sorting
+    priorityToNumber: (priority) => {
+        const priorities = { high: 3, medium: 2, low: 1 };
+        return priorities[priority] || 2;
+    },
+    
+    // Convert number back to priority
+    numberToPriority: (num) => {
+        const priorities = { 3: 'high', 2: 'medium', 1: 'low' };
+        return priorities[num] || 'medium';
     }
 };
 
@@ -282,10 +322,12 @@ const DataManager = {
     saveTasks: () => {
         try {
             localStorage.setItem('nexusTasks', JSON.stringify(AppState.tasks));
-            Utils.showToast('Tasks saved', 'success');
+            TaskManager.updateFooterStats();
+            return true;
         } catch (error) {
             console.error('Error saving tasks:', error);
             Utils.showToast('Error saving tasks', 'error');
+            return false;
         }
     },
     
@@ -311,6 +353,7 @@ const DataManager = {
                 // Sort by order
                 AppState.tasks.sort((a, b) => a.order - b.order);
             }
+            TaskManager.updateFooterStats();
         } catch (error) {
             console.error('Error loading tasks:', error);
             AppState.tasks = [];
@@ -351,12 +394,15 @@ const DataManager = {
     },
     
     // Export tasks as JSON file
-    exportTasks: () => {
+    exportToJSON: () => {
         try {
             const data = {
                 tasks: AppState.tasks,
                 exportedAt: new Date().toISOString(),
-                version: '1.0'
+                version: '2.0',
+                totalTasks: AppState.tasks.length,
+                completedTasks: AppState.tasks.filter(t => t.completed).length,
+                pendingTasks: AppState.tasks.filter(t => !t.completed).length
             };
             
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -369,15 +415,121 @@ const DataManager = {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            Utils.showToast('Tasks exported successfully', 'success', 'Export Complete');
+            Utils.showToast('Tasks exported to JSON successfully', 'success', 'Export Complete');
+            return true;
         } catch (error) {
-            console.error('Error exporting tasks:', error);
-            Utils.showToast('Error exporting tasks', 'error', 'Export Failed');
+            console.error('Error exporting to JSON:', error);
+            Utils.showToast('Error exporting tasks to JSON', 'error', 'Export Failed');
+            return false;
+        }
+    },
+    
+    // Export tasks to Excel
+    exportToExcel: () => {
+        try {
+            // Prepare data for Excel
+            const excelData = AppState.tasks.map(task => ({
+                'Task ID': task.id,
+                'Title': task.title,
+                'Description': task.description || '',
+                'Priority': task.priority.toUpperCase(),
+                'Priority Value': Utils.priorityToNumber(task.priority),
+                'Due Date': Utils.formatDateForExcel(task.dueDate),
+                'Created Date': Utils.formatDateForExcel(task.createdAt),
+                'Status': task.completed ? 'Completed' : 'Pending',
+                'Completed': task.completed ? 'Yes' : 'No',
+                'Order': task.order
+            }));
+            
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            
+            // Set column widths
+            const wscols = [
+                { wch: 15 }, // Task ID
+                { wch: 30 }, // Title
+                { wch: 50 }, // Description
+                { wch: 10 }, // Priority
+                { wch: 15 }, // Priority Value
+                { wch: 12 }, // Due Date
+                { wch: 12 }, // Created Date
+                { wch: 10 }, // Status
+                { wch: 10 }, // Completed
+                { wch: 8 }   // Order
+            ];
+            ws['!cols'] = wscols;
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Tasks');
+            
+            // Add summary sheet
+            const summaryData = [{
+                'Total Tasks': AppState.tasks.length,
+                'Completed Tasks': AppState.tasks.filter(t => t.completed).length,
+                'Pending Tasks': AppState.tasks.filter(t => !t.completed).length,
+                'Completion Rate': `${Math.round((AppState.tasks.filter(t => t.completed).length / AppState.tasks.length) * 100) || 0}%`,
+                'Export Date': new Date().toLocaleDateString(),
+                'Export Time': new Date().toLocaleTimeString()
+            }];
+            
+            const ws2 = XLSX.utils.json_to_sheet(summaryData);
+            ws2['!cols'] = [{ wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
+            XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+            
+            // Generate Excel file
+            const fileName = `nexus-tasks-${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            Utils.showToast('Tasks exported to Excel successfully', 'success', 'Export Complete');
+            return true;
+        } catch (error) {
+            console.error('Error exporting to Excel:', error);
+            Utils.showToast('Error exporting tasks to Excel', 'error', 'Export Failed');
+            return false;
+        }
+    },
+    
+    // Export tasks to CSV
+    exportToCSV: () => {
+        try {
+            // Prepare CSV data
+            const headers = ['Title', 'Description', 'Priority', 'Due Date', 'Status', 'Created Date'];
+            const csvData = AppState.tasks.map(task => [
+                `"${task.title.replace(/"/g, '""')}"`,
+                `"${(task.description || '').replace(/"/g, '""')}"`,
+                task.priority,
+                Utils.formatDateForExcel(task.dueDate) || '',
+                task.completed ? 'Completed' : 'Pending',
+                Utils.formatDateForExcel(task.createdAt)
+            ]);
+            
+            const csvContent = [
+                headers.join(','),
+                ...csvData.map(row => row.join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `nexus-tasks-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            Utils.showToast('Tasks exported to CSV successfully', 'success', 'Export Complete');
+            return true;
+        } catch (error) {
+            console.error('Error exporting to CSV:', error);
+            Utils.showToast('Error exporting tasks to CSV', 'error', 'Export Failed');
+            return false;
         }
     },
     
     // Import tasks from JSON file
-    importTasks: (file) => {
+    importFromJSON: (file) => {
         try {
             const reader = new FileReader();
             
@@ -387,7 +539,7 @@ const DataManager = {
                     
                     // Validate imported data
                     if (!data.tasks || !Array.isArray(data.tasks)) {
-                        throw new Error('Invalid file format');
+                        throw new Error('Invalid file format: No tasks array found');
                     }
                     
                     // Merge with existing tasks
@@ -406,18 +558,97 @@ const DataManager = {
                     DataManager.saveTasks();
                     TaskManager.renderTasks();
                     
-                    Utils.showToast(`${newTasks.length} tasks imported`, 'success', 'Import Complete');
+                    Utils.showToast(`${newTasks.length} tasks imported from JSON`, 'success', 'Import Complete');
                 } catch (error) {
-                    console.error('Error parsing imported file:', error);
-                    Utils.showToast('Invalid file format', 'error', 'Import Failed');
+                    console.error('Error parsing JSON file:', error);
+                    Utils.showToast('Invalid JSON file format', 'error', 'Import Failed');
                 }
+            };
+            
+            reader.onerror = () => {
+                Utils.showToast('Error reading JSON file', 'error', 'Import Failed');
             };
             
             reader.readAsText(file);
         } catch (error) {
-            console.error('Error importing tasks:', error);
-            Utils.showToast('Error importing tasks', 'error', 'Import Failed');
+            console.error('Error importing JSON:', error);
+            Utils.showToast('Error importing tasks from JSON', 'error', 'Import Failed');
         }
+    },
+    
+    // Import tasks from Excel/CSV file
+    importFromExcel: (file) => {
+        try {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Get first sheet
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    if (!jsonData.length) {
+                        throw new Error('No data found in Excel file');
+                    }
+                    
+                    // Convert Excel data to task format
+                    const newTasks = jsonData.map((row, index) => {
+                        // Handle different column names
+                        const title = row.Title || row['Task Title'] || row.title || '';
+                        const description = row.Description || row['Task Description'] || row.description || '';
+                        const priority = (row.Priority || row.priority || 'medium').toLowerCase();
+                        const dueDate = row['Due Date'] || row.dueDate || row['Due Date'] || null;
+                        const completed = row.Completed === 'Yes' || row.Status === 'Completed' || row.completed === true || row.completed === 'true';
+                        
+                        return {
+                            id: Utils.generateId(),
+                            title: title.toString(),
+                            description: description.toString(),
+                            priority: ['high', 'medium', 'low'].includes(priority) ? priority : 'medium',
+                            dueDate: dueDate ? new Date(dueDate).toISOString().split('T')[0] : null,
+                            createdAt: new Date().toISOString(),
+                            completed: completed,
+                            order: AppState.tasks.length + index
+                        };
+                    }).filter(task => task.title.trim() !== ''); // Filter out empty titles
+                    
+                    if (newTasks.length === 0) {
+                        throw new Error('No valid tasks found in Excel file');
+                    }
+                    
+                    AppState.tasks.push(...newTasks);
+                    DataManager.saveTasks();
+                    TaskManager.renderTasks();
+                    
+                    Utils.showToast(`${newTasks.length} tasks imported from Excel`, 'success', 'Import Complete');
+                } catch (error) {
+                    console.error('Error parsing Excel file:', error);
+                    Utils.showToast('Invalid Excel file format', 'error', 'Import Failed');
+                }
+            };
+            
+            reader.onerror = () => {
+                Utils.showToast('Error reading Excel file', 'error', 'Import Failed');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        } catch (error) {
+            console.error('Error importing Excel:', error);
+            Utils.showToast('Error importing tasks from Excel', 'error', 'Import Failed');
+        }
+    },
+    
+    // Show export modal
+    showExportModal: () => {
+        DOM.exportModal.classList.remove('hidden');
+    },
+    
+    // Hide export modal
+    hideExportModal: () => {
+        DOM.exportModal.classList.add('hidden');
     }
 };
 
@@ -561,6 +792,7 @@ const TaskManager = {
     renderTasks: () => {
         // Update stats first
         TaskManager.updateStats();
+        TaskManager.updateFooterStats();
         
         // Filter tasks
         let filteredTasks = [...AppState.tasks];
@@ -702,6 +934,17 @@ const TaskManager = {
         DOM.pendingTasks.textContent = pending;
         DOM.progressPercent.textContent = `${progress}%`;
         DOM.progressFill.style.width = `${progress}%`;
+    },
+    
+    // Update footer statistics
+    updateFooterStats: () => {
+        const total = AppState.tasks.length;
+        const completed = AppState.tasks.filter(task => task.completed).length;
+        const pending = total - completed;
+        
+        DOM.footerTotalTasks.textContent = total;
+        DOM.footerCompletedTasks.textContent = completed;
+        DOM.footerPendingTasks.textContent = pending;
     },
     
     // Attach event listeners to tasks
@@ -900,28 +1143,39 @@ const TaskManager = {
     // Update calendar view
     updateCalendar: () => {
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+        
         const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() + (AppState.calendarOffset * 7));
         
         let calendarHTML = '';
         
-        // Show next 7 days
+        // Update month display
+        const displayDate = new Date(startDate);
+        DOM.calendarMonth.textContent = `${months[displayDate.getMonth()]} ${displayDate.getFullYear()}`;
+        
+        // Show 7 days starting from the calculated date
         for (let i = 0; i < 7; i++) {
-            const date = new Date(today);
-            date.setDate(today.getDate() + i);
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
             
             const dayName = days[date.getDay()];
             const dayNumber = date.getDate();
             const dateString = date.toISOString().split('T')[0];
+            
+            // Check if this is today
+            const isToday = date.toDateString() === today.toDateString();
             
             // Count tasks for this day
             const tasksForDay = AppState.tasks.filter(task => 
                 task.dueDate === dateString
             ).length;
             
-            const isToday = i === 0;
-            
             calendarHTML += `
-                <div class="calendar-day ${isToday ? 'active' : ''}" title="${dateString}: ${tasksForDay} task${tasksForDay !== 1 ? 's' : ''}">
+                <div class="calendar-day ${isToday ? 'active' : ''}" 
+                     title="${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}: ${tasksForDay} task${tasksForDay !== 1 ? 's' : ''}">
                     <div class="day-name">${dayName}</div>
                     <div class="day-number">${dayNumber}</div>
                     ${tasksForDay > 0 ? `<div class="day-tasks">${tasksForDay}</div>` : ''}
@@ -930,6 +1184,18 @@ const TaskManager = {
         }
         
         DOM.calendarWeek.innerHTML = calendarHTML;
+    },
+    
+    // Navigate calendar weeks
+    navigateCalendar: (direction) => {
+        AppState.calendarOffset += direction;
+        TaskManager.updateCalendar();
+    },
+    
+    // Reset calendar to current week
+    resetCalendar: () => {
+        AppState.calendarOffset = 0;
+        TaskManager.updateCalendar();
     }
 };
 
@@ -1185,15 +1451,58 @@ const EventManager = {
         // Voice search
         DOM.voiceSearchBtn.addEventListener('click', VoiceSearch.toggle);
         
-        // Export/Import
-        DOM.exportBtn.addEventListener('click', DataManager.exportTasks);
-        DOM.importBtn.addEventListener('click', () => {
-            DOM.fileImport.click();
+        // Calendar navigation
+        DOM.prevWeekBtn.addEventListener('click', () => TaskManager.navigateCalendar(-1));
+        DOM.nextWeekBtn.addEventListener('click', () => TaskManager.navigateCalendar(1));
+        
+        // Export buttons
+        DOM.exportJsonBtn.addEventListener('click', DataManager.exportToJSON);
+        DOM.exportExcelBtn.addEventListener('click', DataManager.exportToExcel);
+        DOM.footerExportBtn.addEventListener('click', DataManager.showExportModal);
+        
+        // Export modal buttons
+        DOM.exportJsonModalBtn.addEventListener('click', () => {
+            DataManager.hideExportModal();
+            DataManager.exportToJSON();
         });
         
-        DOM.fileImport.addEventListener('change', (e) => {
+        DOM.exportExcelModalBtn.addEventListener('click', () => {
+            DataManager.hideExportModal();
+            DataManager.exportToExcel();
+        });
+        
+        DOM.exportCsvModalBtn.addEventListener('click', () => {
+            DataManager.hideExportModal();
+            DataManager.exportToCSV();
+        });
+        
+        DOM.cancelExportBtn.addEventListener('click', DataManager.hideExportModal);
+        
+        // Import buttons
+        DOM.importJsonBtn.addEventListener('click', () => DOM.fileImportJson.click());
+        DOM.importExcelBtn.addEventListener('click', () => DOM.fileImportExcel.click());
+        DOM.footerImportBtn.addEventListener('click', () => {
+            // Show import options
+            Utils.showConfirm('Choose import format:', (choice) => {
+                if (choice) {
+                    DOM.fileImportJson.click();
+                } else {
+                    DOM.fileImportExcel.click();
+                }
+            });
+        });
+        
+        // File import handlers
+        DOM.fileImportJson.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
-                DataManager.importTasks(e.target.files[0]);
+                DataManager.importFromJSON(e.target.files[0]);
+                e.target.value = ''; // Reset file input
+            }
+        });
+        
+        DOM.fileImportExcel.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                DataManager.importFromExcel(e.target.files[0]);
                 e.target.value = ''; // Reset file input
             }
         });
@@ -1207,7 +1516,7 @@ const EventManager = {
         DOM.cancelEditBtn.addEventListener('click', TaskManager.closeEditModal);
         
         // Close modal when clicking outside
-        [DOM.editModal, DOM.confirmModal].forEach(modal => {
+        [DOM.editModal, DOM.confirmModal, DOM.exportModal].forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     modal.classList.add('hidden');
@@ -1231,6 +1540,9 @@ const EventManager = {
                 if (!DOM.confirmModal.classList.contains('hidden')) {
                     DOM.confirmModal.classList.add('hidden');
                 }
+                if (!DOM.exportModal.classList.contains('hidden')) {
+                    DataManager.hideExportModal();
+                }
             }
             
             // Ctrl/Cmd + F: Focus search
@@ -1238,10 +1550,25 @@ const EventManager = {
                 e.preventDefault();
                 DOM.searchInput.focus();
             }
+            
+            // Ctrl/Cmd + E: Export
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                DataManager.showExportModal();
+            }
+            
+            // Ctrl/Cmd + I: Import
+            if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+                e.preventDefault();
+                DOM.fileImportJson.click();
+            }
         });
         
         // Initialize voice search
         VoiceSearch.init();
+        
+        // Reset calendar when clicking on month title
+        DOM.calendarMonth.addEventListener('click', TaskManager.resetCalendar);
     }
 };
 
@@ -1249,7 +1576,7 @@ const EventManager = {
 const App = {
     // Initialize the application
     init: () => {
-        console.log('NexusTasks Initializing...');
+        console.log('NexusTasks v2.0 Initializing...');
         
         // Load data
         DataManager.loadSettings();
@@ -1271,33 +1598,25 @@ const App = {
         setTimeout(() => {
             if (AppState.tasks.length === 0) {
                 Utils.showToast(
-                    'Welcome to NexusTasks! Start by adding your first task.',
+                    'Welcome to NexusTasks v2.0! Now with Excel export/import and enhanced calendar.',
                     'info',
                     'Welcome 👋'
                 );
             }
         }, 1000);
         
-        console.log('NexusTasks Ready!');
+        console.log('NexusTasks v2.0 Ready!');
     }
 };
 
 // ===== Initialize Application =====
 document.addEventListener('DOMContentLoaded', App.init);
 
-// Service Worker for PWA (optional)
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(error => {
-            console.log('Service Worker registration failed:', error);
-        });
-    });
-}
-
 // Export for debugging (optional)
 window.NexusTasks = {
     AppState,
     TaskManager,
     DataManager,
-    UIManager
+    UIManager,
+    Utils
 };

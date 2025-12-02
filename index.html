@@ -111,12 +111,22 @@
                 <!-- Quick Actions -->
                 <div class="quick-actions glass-card">
                     <h3>Quick Actions</h3>
-                    <button id="exportBtn" class="btn-secondary">
-                        <i class="fas fa-download"></i> Export Tasks
-                    </button>
-                    <button id="importBtn" class="btn-secondary">
-                        <i class="fas fa-upload"></i> Import Tasks
-                    </button>
+                    <div class="export-options">
+                        <button id="exportJsonBtn" class="btn-secondary">
+                            <i class="fas fa-file-code"></i> Export JSON
+                        </button>
+                        <button id="exportExcelBtn" class="btn-secondary">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </button>
+                    </div>
+                    <div class="import-options">
+                        <button id="importJsonBtn" class="btn-secondary">
+                            <i class="fas fa-file-upload"></i> Import JSON
+                        </button>
+                        <button id="importExcelBtn" class="btn-secondary">
+                            <i class="fas fa-file-excel"></i> Import Excel
+                        </button>
+                    </div>
                     <button id="clearCompletedBtn" class="btn-secondary">
                         <i class="fas fa-check-double"></i> Clear Completed
                     </button>
@@ -127,7 +137,17 @@
 
                 <!-- Calendar View -->
                 <div class="calendar-container glass-card">
-                    <h3>This Week</h3>
+                    <div class="calendar-header">
+                        <h3 id="calendarMonth">This Week</h3>
+                        <div class="calendar-nav">
+                            <button id="prevWeekBtn" class="btn-icon" aria-label="Previous week">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button id="nextWeekBtn" class="btn-icon" aria-label="Next week">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="calendar-week" id="calendarWeek">
                         <!-- Calendar days will be populated by JS -->
                     </div>
@@ -220,6 +240,73 @@
             </section>
         </main>
 
+        <!-- Footer -->
+        <footer class="footer glass-card">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>NexusTasks</h4>
+                    <p>A modern, feature-rich to-do list application built with HTML, CSS, and JavaScript.</p>
+                    <div class="footer-links">
+                        <a href="#" class="footer-link">About</a>
+                        <a href="#" class="footer-link">Features</a>
+                        <a href="#" class="footer-link">GitHub</a>
+                        <a href="#" class="footer-link">Contact</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Stats</h4>
+                    <div class="footer-stats">
+                        <div class="footer-stat">
+                            <span class="stat-label">Total Tasks:</span>
+                            <span id="footerTotalTasks" class="stat-value">0</span>
+                        </div>
+                        <div class="footer-stat">
+                            <span class="stat-label">Completed:</span>
+                            <span id="footerCompletedTasks" class="stat-value">0</span>
+                        </div>
+                        <div class="footer-stat">
+                            <span class="stat-label">Pending:</span>
+                            <span id="footerPendingTasks" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Export/Import</h4>
+                    <p>Export your tasks in multiple formats or import from existing files.</p>
+                    <div class="footer-buttons">
+                        <button id="footerExportBtn" class="btn-secondary">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button id="footerImportBtn" class="btn-secondary">
+                            <i class="fas fa-upload"></i> Import
+                        </button>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="LinkedIn">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Discord">
+                            <i class="fab fa-discord"></i>
+                        </a>
+                    </div>
+                    <p class="copyright">
+                        © 2024 NexusTasks. All rights reserved.
+                        <br>
+                        <span class="version">v2.0.0</span>
+                    </p>
+                </div>
+            </div>
+        </footer>
+
         <!-- Floating Add Button -->
         <button id="floatingAddBtn" class="floating-btn" aria-label="Add new task">
             <i class="fas fa-plus"></i>
@@ -258,12 +345,37 @@
         </div>
     </div>
 
-    <!-- File Input for Import (Hidden) -->
-    <input type="file" id="fileImport" accept=".json" class="hidden">
+    <!-- Export Format Modal -->
+    <div class="modal-overlay hidden" id="exportModal" role="dialog" aria-labelledby="exportModalTitle">
+        <div class="modal-content glass-card">
+            <h3 id="exportModalTitle">Export Tasks</h3>
+            <p>Choose export format:</p>
+            <div class="export-options-modal">
+                <button id="exportJsonModalBtn" class="btn-secondary">
+                    <i class="fas fa-file-code"></i> JSON Format
+                </button>
+                <button id="exportExcelModalBtn" class="btn-secondary">
+                    <i class="fas fa-file-excel"></i> Excel Format
+                </button>
+                <button id="exportCsvModalBtn" class="btn-secondary">
+                    <i class="fas fa-file-csv"></i> CSV Format
+                </button>
+            </div>
+            <div class="modal-buttons">
+                <button id="cancelExportBtn" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Inputs (Hidden) -->
+    <input type="file" id="fileImportJson" accept=".json" class="hidden">
+    <input type="file" id="fileImportExcel" accept=".xlsx,.xls,.csv" class="hidden">
 
     <!-- Notification Toast -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- Excel Library -->
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
