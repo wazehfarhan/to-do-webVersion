@@ -239,7 +239,7 @@ Project Repo: [https://github.com/wazehfarhan/to-do-webVersion](https://github.c
 
 # ⭐ Support
 If you find this project useful, give it a star!  
-![Stars](https://img.shields.io/github/stars/w2zfrhn/nexus-tasks?style=social)  
+![Stars](https://img.shields.io/github/stars/wazehfarhan/to-do-webVersion?style=social)  
 
 ---
 
